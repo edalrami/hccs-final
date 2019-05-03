@@ -1,0 +1,65 @@
+
+Call:
+lm(formula = post_total_cost ~ ., data = lm_data2)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-34069  -6559  -2846   1785  72532 
+
+Coefficients:
+                      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)          6.970e+03  3.406e+03   2.047  0.04087 *  
+idx_copay            9.731e+00  1.658e+01   0.587  0.55745    
+log_idx_copay       -2.410e+02  1.781e+02  -1.353  0.17634    
+pre_er_cost          3.544e-01  3.219e-01   1.101  0.27108    
+pre_op_cost          3.104e-01  6.895e-02   4.502 7.27e-06 ***
+num_op               4.081e+01  4.756e+01   0.858  0.39096    
+num_er               2.518e+02  5.076e+02   0.496  0.61991    
+num_gpi6            -1.862e+02  1.543e+02  -1.207  0.22779    
+adjust_total_30d     4.203e+01  3.643e+01   1.153  0.24889    
+generic_rate        -2.402e+03  2.552e+03  -0.941  0.34670    
+log_pre_op_cost     -4.767e+01  2.118e+02  -0.225  0.82200    
+log_pre_rx_cost      1.174e+02  3.049e+02   0.385  0.70020    
+numofbrand          -3.325e+01  1.346e+02  -0.247  0.80493    
+brand_cost           1.431e+00  2.178e-01   6.570 6.93e-11 ***
+ratio_G_total_cost   2.552e+03  1.580e+03   1.615  0.10658    
+ASTHMA              -3.665e+02  1.531e+03  -0.239  0.81079    
+CEREBROVASCULAR      2.899e+03  2.633e+03   1.101  0.27117    
+CHF                  4.714e+03  1.966e+03   2.398  0.01661 *  
+DEMENTIA             1.409e+04  7.404e+03   1.903  0.05724 .  
+DEPRESSION           2.028e+03  1.318e+03   1.539  0.12398    
+DIABETES            -2.869e+03  1.004e+03  -2.859  0.00431 ** 
+Metastatic           2.014e+04  3.707e+03   5.433 6.46e-08 ***
+OSTEOARTHRITIS       4.696e+03  7.553e+02   6.217 6.55e-10 ***
+PARALYSIS           -4.607e+03  2.856e+03  -1.613  0.10691    
+PERIPHERAL_VASCULAR  1.904e+03  1.562e+03   1.219  0.22316    
+SCHIZOPHRENIA        5.093e+03  8.852e+03   0.575  0.56517    
+SLEEP_DISORDERS      1.066e+03  1.008e+03   1.057  0.29047    
+pdc_80_flag         -2.384e+03  7.273e+02  -3.278  0.00107 ** 
+sexN                 4.793e+01  6.818e+02   0.070  0.94397    
+age_cat1            -2.071e+03  1.070e+03  -1.937  0.05299 .  
+age_cat2            -6.897e+02  9.528e+02  -0.724  0.46928    
+age_cat3             7.733e+02  8.846e+02   0.874  0.38216    
+idx_paytypN2        -6.690e+03  4.863e+03  -1.376  0.16915    
+idx_prodtypeN2       2.303e+03  1.415e+03   1.628  0.10380    
+pre_CCI1             6.674e+02  9.761e+02   0.684  0.49427    
+pre_CCI2             6.049e+02  1.279e+03   0.473  0.63635    
+pre_CCI3             5.371e+03  1.682e+03   3.194  0.00143 ** 
+pre_CCI6             8.439e+03  4.021e+03   2.099  0.03600 *  
+pre_CCI8             1.063e+04  6.831e+03   1.557  0.11977    
+pre_total_cat0      -6.329e+02  1.795e+03  -0.353  0.72445    
+pre_total_cat1      -1.920e+03  1.378e+03  -1.393  0.16387    
+pre_total_cat2       1.351e+02  1.301e+03   0.104  0.91726    
+pre_total_cat5       2.675e+03  1.131e+03   2.365  0.01817 *  
+pre_total_cat6       3.389e+03  1.186e+03   2.858  0.00433 ** 
+pre_total_cat7       5.775e+02  1.181e+03   0.489  0.62481    
+regionN1            -4.108e+02  1.107e+03  -0.371  0.71072    
+regionN2            -2.217e+03  1.076e+03  -2.060  0.03957 *  
+regionN3             2.772e+02  1.556e+03   0.178  0.85866    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 12400 on 1494 degrees of freedom
+Multiple R-squared:  0.2609,	Adjusted R-squared:  0.2377 
+F-statistic: 11.22 on 47 and 1494 DF,  p-value: < 2.2e-16
+

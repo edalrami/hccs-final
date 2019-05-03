@@ -11,6 +11,16 @@ X = rbind(X_train, X_test)
 y = rbind(y_train, y_test)
 colnames(y) = c('post_total_cost')
 
+
+cat_names = read.csv("cat_names.csv", header=TRUE)
+cont_names = read.csv("cont_names.csv", header=TRUE)
+
+categorical <- as.character(unlist(cat_names[1,]))
+categorical
+
+continuous <- as.character(unlist(cont_names[1,]))
+continuous
+
 #Check normality of target variable
 qqnorm(y_train$post_total_cost, pch = 1, frame = FALSE)
 
@@ -57,30 +67,78 @@ features = data.frame(name = features@Dimnames[[1]][features@i + 1], coefficient
 row_sub = apply(features, 1, function(row) all(row !=0 ))
 ##Subset coefficient names to get selected features for linear regression model
 selected_features = features[row_sub,]$name
+selected_features
 model_coef = features[row_sub,]$coefficient
+
+selected_features[2:49]
+
+##FIT THESE VALUES TO A LINEAR MODEL#
+
+
+lm_data = X_train[names(X_train)[names(X_train) %in% selected_features[2:49]]]
+
+lm_data2 = cbind(y_train, lm_data)
+
+lmfit = lm(post_total_cost ~ ., data=lm_data2)
+summary(lmfit)
+
+
+#Write results of Linear model to txt
+sink("lm.txt")
+print(summary(lmfit))
+sink()
+
+
+
+
+
+# #Of the features selected through lasso regression
+# #We will now analyze the colinearity between them
+# #We've separated the categorical and continuous variables
+# 
+# cat_lm = lm_data2[names(lm_data2)[!names(lm_data2) %in% continuous]]
+# cont_lm = lm_data2[names(lm_data2)[!names(lm_data2) %in% categorical]]
+# 
+# dim(cat_lm)
+# dim(cont_lm)
+# 
+# colnames(cont_lm)
+# 
+# cont_lm %>%
+#   cor()
+# 
+# 
+# library(leaps)
+# m2 = regsubsets(post_total_cost ~ ., data = lm_data2, method = "exhaustive")
+# modelSum = summary(m2)
+# 
+# modelSum$adjr2
 
 
 ##########################################################
 #FEATURE SELETION FOR CLASSIFICATION - HYPOTHESIS TESTING
 ##########################################################
 
-cat_names = read.csv("cat_names.csv", header=TRUE)
-cont_names = read.csv("cont_names.csv", header=TRUE)
 
-categorical <- as.character(unlist(cat_names[1,]))
-categorical
 
-continuous <- as.character(unlist(cont_names[1,]))
-continuous
+#d2 = read.csv("projectTrain.csv")
 
-d2 = read.csv("projectTrain.csv")
-
+M = cbind(X,y)
+d2 = M
 #Subset for diabetic patients only
 
 d2 = d2[d2$drug_class == '*ANTIDIABETICS*',]
+no_rows = dim(d2)[1]
+#number of training observations
+tr = no_rows*0.8
 
+#Test set of data
+d2_ts = d2[tr:no_rows,]
 
+#Training set of data
+d2_tr = d2[1:tr,]
 
+categorical
 getChi <- function(var, d){
   ##Return the chi-test hypothesis result
   #
@@ -98,7 +156,7 @@ getChi <- function(var, d){
 
 
 
-chi_results = lapply(categorical, getChi, d2)
+chi_results = lapply(categorical, getChi, d2_tr)
 chi_results
 
 chi_df = as.data.frame(matrix(unlist(chi_results), nrow = length(unlist(chi_results[1]))))
@@ -129,9 +187,9 @@ selected_features2
 
 
 #Separate the categorical and cont data
-x_cats = d2[,which(colnames(d2) %in% selected_features2)]
-x_cont = d2[,which(colnames(d2) %in% continuous)]
-pdc_80_flag = d2$pdc_80_flag
+x_cats = d2_tr[,which(colnames(d2_tr) %in% selected_features2)]
+x_cont = d2_tr[,which(colnames(d2_tr) %in% continuous)]
+pdc_80_flag_ = d2_tr$pdc_80_flag
 
 #Factorize categoricals
 x_factors = model.matrix(pdc_80_flag ~ ., data=x_cats)[,-1]
@@ -174,7 +232,7 @@ getCont <- function(var, data){
 
 }
 
-test_stats_res = lapply(continuous, getCont, d2)
+test_stats_res = lapply(continuous, getCont, d2_tr)
 
 
 test_res = as.data.frame(matrix(unlist(test_stats_res), nrow = length(unlist(test_stats_res[1]))))
@@ -187,21 +245,27 @@ test_res$pval = as.numeric(as.character(test_res$pval))
 
 selected_cont_features = test_res[(test_res$pval < 0.05),]
 dim(selected_cont_features)
-selected_cont_features
+selected_cont_features$var
+
+continuous
+selected_cat_features
+selected_cat_features = selected_cat_features[complete.cases(selected_cat_features),]
+selected_cat_features = selected_cat_features[selected_cat_features$var != "pdc_80_flag",]
+X2 = d2_tr[c(selected_cont_features$var, selected_cat_features$var, "pdc_80_flag")]
+X3 = d2_ts[c(selected_cont_features$var, selected_cat_features$var, "pdc_80_flag")]
+
+X2
+X2_ = model.matrix(pdc_80_flag ~ ., data = X2)[,-1]
 
 
+glmmod = glmnet(X2_, y=as.factor(pdc_80_flag_), alpha=1, family = "binomial")
+plot(glmmod, xvar = "lambda")
 
 
+model_coef = as.data.frame(as.matrix(coef(glmmod)[,10]))
+model_coef
+bestlam2 = min(glmmod$lambda)
 
-
-#x_ = as.matrix(data.frame(x_cont, x_factors))
-#dim(x_)
-
-#glmmod = glmnet(x_, y=as.factor(pdc_80_flag), alpha=1, family = "binomial")
-
-#plot(glmmod, xvar = "lambda")
-
-#glmmod
-
-#coef(glmmod)[,10]
-
+ix = which(model_coef[,1] != 0)
+weights = model_coef[ix, 1]
+weights
