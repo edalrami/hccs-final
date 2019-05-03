@@ -1,3 +1,15 @@
+---
+title: "Healthcare Final Project"
+author: "Edwin Ramirez"
+date: "May 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
 library(dplyr)
 library(ggplot2)
 library(glmnet)
@@ -20,7 +32,14 @@ categorical
 
 continuous <- as.character(unlist(cont_names[1,]))
 continuous
+```
 
+# Linear Regression with LASSO Feature Selection
+
+
+We see from the qq norm plot that our output variable `post_total_cost` is not normalized. Therefore, we transform the data by taking the log of our output variable.
+
+```{r}
 #Check normality of target variable
 qqnorm(y_train$post_total_cost, pch = 1, frame = FALSE)
 
@@ -69,7 +88,10 @@ row_sub = apply(features, 1, function(row) all(row !=0 ))
 selected_features = features[row_sub,]$name
 selected_features
 model_coef = features[row_sub,]$coefficient
+```
 
+Lasso regression gives the following features. We fit these features to a linear model, and analyze the adjusted R square of the model
+```{r}
 selected_features[2:49]
 
 ##FIT THESE VALUES TO A LINEAR MODEL#
@@ -93,12 +115,21 @@ lm_data3 = cbind(scaled_cont, cat_data)
 lmfit = lm(post_total_cost ~ ., data=lm_data3)
 summary(lmfit)
 
+```
 
+As we can see the model is not very useful. Save output of summary to text file
+```{r}
 #Write results of Linear model to txt
 sink("lm.txt")
 print(summary(lmfit))
 sink()
+```
 
+# Classification
+
+We decided to use hypothesis testing to select the features for the classifcation models. Whichever features we have selected from using stats tests on all of the relevant features, we will the use the ones with non-zero co-efficients to use for KNN, Naive Bayes, and Logistic Regression.
+
+```{r}
 
 ##########################################################
 #FEATURE SELETION FOR CLASSIFICATION - HYPOTHESIS TESTING
@@ -140,9 +171,8 @@ getChi <- function(var, d){
 }
 
 
-
+#Get chi square results
 chi_results = lapply(categorical, getChi, d2_tr)
-chi_results
 
 chi_df = as.data.frame(matrix(unlist(chi_results), nrow = length(unlist(chi_results[1]))))
 chi_df = t(chi_df)
@@ -162,11 +192,12 @@ dim(selected_cat_features)
 
 #Selected features for logistic regression
 selected_features2 = chi_df[(chi_df$pval < 0.05),]$var
-selected_features2
-
 selected_features2 = as.array(selected_features2) 
+```
 
-#### THESE ARE THE FEATURES TO USE FOR CLASSIFICATION
+
+```{r}
+#### THESE ARE THE CAT FEATURES TO USE FOR CLASSIFICATION
 selected_features2
 
 
@@ -228,19 +259,19 @@ test_res = as.data.frame(test_res)
 test_res$var = as.character(test_res$var)
 test_res$pval = as.numeric(as.character(test_res$pval))
 
+#Select continuous features
 selected_cont_features = test_res[(test_res$pval < 0.05),]
-dim(selected_cont_features)
-selected_cont_features$var
 
-continuous
-selected_cat_features
+
 selected_cat_features = selected_cat_features[complete.cases(selected_cat_features),]
 selected_cat_features = selected_cat_features[selected_cat_features$var != "pdc_80_flag",]
+
+#Create training set and test set
 X2 = d2_tr[c(selected_cont_features$var, selected_cat_features$var, "pdc_80_flag")]
 X3 = d2_ts[c(selected_cont_features$var, selected_cat_features$var, "pdc_80_flag")]
 
-X2
 
+#Create model matrix compatible with glmnet
 X2_ = model.matrix(pdc_80_flag ~ ., data = X2)[,-1]
 
 
@@ -249,7 +280,7 @@ plot(glmmod, xvar = "lambda")
 
 
 model_coef = as.data.frame(as.matrix(coef(glmmod)[,10]))
-#Selected features will be adjust_total_30d, age_cat0, and age_grpN0
+#Selected features will be adjust_total_30d, age_cat0, and age_grpN0 classifcation models
 model_coef
 
 bestlam2 = min(glmmod$lambda)
@@ -300,12 +331,21 @@ knn_res_in = as.integer(knn_res_in)
 dist2 = Distance_for_KNN_test(cls_test, cls_data)  
 knn_res_out = knn_test_function(cls_data, cls_test, dist2, X2$pdc_80_flag, k=k)
 knn_res_out = as.integer(knn_res_out)
+```
 
+Accuracy rate of KNN
+```{r}
 (out_accuracy = round(sum(knn_res_out == X3$pdc_80_flag)/length(knn_res_out),2))
+```
 
+Classification Error of KNN
+```{r}
 #Classification error
 (e_out = 1 - out_accuracy)
+```
 
+
+```{r}
 
 ######################################
 #NaiveBayes
@@ -325,8 +365,15 @@ cls_test$age_grpN0 = as.integer(cls_test$age_grpN0)
 
 
 nb_pred = predict(nb_model, cls_test)
-X3$pdc_80_flag
-(nb_acc = round(sum(nb_pred == X3$pdc_80_flag)/length(X3$pdc_80_flag),2))
+```
 
+Accuracy of Naive Bayes
+```{r}
+(nb_acc = round(sum(nb_pred == X3$pdc_80_flag)/length(X3$pdc_80_flag),2))
+```
+
+Classificaiton Error of Naive Bayes
+```{r}
 #Classification error
 (nb_e_out = 1 - nb_acc)
+```
