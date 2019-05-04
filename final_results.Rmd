@@ -120,7 +120,7 @@ summary(lmfit)
 As we can see the model is not very useful. Save output of summary to text file
 ```{r}
 #Write results of Linear model to txt
-sink("lm.txt")
+sink("model_outputs/lm.txt")
 print(summary(lmfit))
 sink()
 ```
@@ -376,4 +376,13 @@ Classificaiton Error of Naive Bayes
 ```{r}
 #Classification error
 (nb_e_out = 1 - nb_acc)
+```
+
+
+```{r}
+model_results = matrix(c(out_accuracy, e_out, nb_acc, nb_e_out), ncol = 2)
+colnames(model_results) = c("KNN", "NaiveBayes")
+rownames(model_results) = c("AccuracyRate", "ErrorRate")
+model_results = as.data.frame(model_results)
+write.csv(model_results, "model_outputs/model_results.csv")
 ```
